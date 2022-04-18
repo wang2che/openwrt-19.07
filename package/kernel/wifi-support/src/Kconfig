@@ -1,0 +1,4 @@
+config WIFI-SUPPORT
+	tristate "Custom wifi-support driver"
+	help
+	  will be called wifi-support.

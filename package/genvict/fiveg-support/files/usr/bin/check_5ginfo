@@ -1,0 +1,9 @@
+#!/bin/bash
+echo -----------------------------------------------------------------------------------
+internal_rd5g > /dev/null 2>&1
+sort -k2n /tmp/.fginf | uniq > /tmp/.fginfo
+rm -f /tmp/.fginf
+cat /tmp/.fginfo
+echo -----------------------------------------------------------------------------------
+rm -f /tmp/.fginfo
+sync

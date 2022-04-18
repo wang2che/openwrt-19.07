@@ -1,0 +1,13 @@
+#!/bin/sh
+
+. /lib/imx8.sh
+. /lib/functions.sh
+. /lib/upgrade/common.sh
+
+move_config() {
+	apalis_mount_boot
+	[ -f "/boot/$BACKUP_FILE" ] && mv -f "/boot/$BACKUP_FILE" /
+	umount /boot
+}
+
+boot_hook_add preinit_mount_root move_config

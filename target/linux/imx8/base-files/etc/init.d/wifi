@@ -1,0 +1,19 @@
+#!/bin/sh /etc/rc.common
+
+START=81
+
+echo "wifi..."
+boot() {
+	echo "wifi boot..."
+	insmod /lib/modules/4.14.98/mlan.ko
+	insmod /lib/modules/4.14.98/sd8xxx.ko cfg80211_wext=0xf
+	hostapd /etc/hostapd.conf &
+	ifconfig uap0 192.168.0.1
+	mkdir -p /var/lib/misc/
+	touch /var/lib/misc/udhcpd.leases
+	udhcpd -fS /etc/udhcpd.conf &
+}
+
+start() {
+	echo "wifi start..."
+}

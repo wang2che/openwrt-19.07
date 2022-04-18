@@ -1,0 +1,4 @@
+#!/bin/bash
+internal_rdmod > /dev/null 2>&1
+cat /tmp/.fgmode
+rm -f /tmp/.fgmode

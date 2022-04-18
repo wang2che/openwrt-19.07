@@ -1,0 +1,40 @@
+#!/bin/bash
+
+function check_5g()
+{
+	cat /dev/ttyUSB3 > /tmp/.ckg &
+	sleep 0.5
+	echo AT+CPSI? > /dev/ttyUSB3
+	sleep 0.5
+	sync
+	cpsiout=$(cat /tmp/.ckg | grep "+CPSI: .*")
+	if [  -z "$cpsiout" ];then
+		echo AT+CPSI? > /dev/ttyUSB3
+		sleep 0.5
+		sync
+		cpsiout=$(cat /tmp/.ckg | grep "+CPSI: .*")
+		echo "$cpsiout" > /tmp/.fginf
+	else
+		echo "$cpsiout" > /tmp/.fginf
+	fi
+
+	sleep 0.5
+	echo AT+CGDCONT? > /dev/ttyUSB3
+	sleep 0.5
+	sync
+	apnlist=$(cat /tmp/.ckg | grep "+CGDCONT: [0-9]\{1,\}.*")
+	if [  -z "$apnlist" ];then
+		echo AT+CGDCONT? > /dev/ttyUSB3
+		sleep 0.5
+		sync
+		apnlist=$(cat /tmp/.ckg | grep "+CGDCONT: [0-9]\{1,\}.*")
+		echo "$apnlist" >> /tmp/.fginf
+	else
+		echo "$apnlist" >> /tmp/.fginf
+	fi
+
+	kill `pidof cat /dev/ttyUSB3`
+	rm -f /tmp/.ckg
+	sync
+}
+check_5g

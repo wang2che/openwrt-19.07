@@ -1,0 +1,6 @@
+#!/bin/bash
+echo "at+simcomati" > /dev/ttyUSB3
+echo "at+simcomati" > /dev/ttyUSB3
+head -n 20 /dev/ttyUSB3 > /run/simcomati.info
+sed -n '4,20p' /run/simcomati.info
+rm -f /run/simcomati.info

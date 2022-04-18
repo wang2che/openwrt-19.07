@@ -1,0 +1,13 @@
+#!/bin/sh /etc/rc.common
+
+START=82
+
+echo "fiveg..."
+boot() {
+	echo "fiveg boot..."
+	/usr/bin/fiveg.sh &
+}
+
+start() {
+	echo "fiveg start..."
+}

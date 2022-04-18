@@ -1,0 +1,128 @@
+
+#!/bin/bash
+
+function is_sa()
+{
+	cat /dev/ttyUSB3 > /tmp/.auto &
+	sleep 0.5
+	echo "AT+CSYSSEL=\"nr5g_disable\"" > /dev/ttyUSB3
+	sleep 0.5
+	sync
+	cat /tmp/.auto | grep "+CSYSSEL: \"nr5g_disable\",2" > /dev/null
+	if [ $? -ne 0 ];then
+		echo "AT+CSYSSEL=\"nr5g_disable\"" > /dev/ttyUSB3
+		sleep 0.5
+		sync
+		cat /tmp/.auto | grep "+CSYSSEL: \"nr5g_disable\",2" > /dev/null
+		if [ $? -ne 0 ];then
+			echo -n "none"
+		else
+			echo AT+CNMP? > /dev/ttyUSB3
+			sleep 0.5
+			sync
+			cat /tmp/.auto | grep "+CNMP: 71" > /dev/null
+			if [ $? -eq 0 ];then
+				echo -n "sa"
+			else
+				echo AT+CNMP? > /dev/ttyUSB3
+				sleep 0.5
+				sync
+				cat /tmp/.auto | grep "+CNMP: 71" > /dev/null
+				if [ $? -eq 0 ];then
+					echo -n "sa"
+				else
+					echo -n "none"
+				fi
+			fi
+		fi
+	else
+		echo AT+CNMP? > /dev/ttyUSB3
+		sleep 0.5
+		sync
+		cat /tmp/.auto | grep "+CNMP: 71" > /dev/null
+		if [ $? -eq 0 ];then
+			echo -n "sa"
+		else
+			echo AT+CNMP? > /dev/ttyUSB3
+			sleep 0.5
+			sync
+			cat /tmp/.auto | grep "+CNMP: 71" > /dev/null
+			if [ $? -eq 0 ];then
+				echo -n "sa"
+			else
+				echo -n "none"
+			fi
+		fi
+	fi
+
+}
+
+function lock_saband()
+{
+	cat /dev/ttyUSB3 > /tmp/.sa &
+	while true
+	do
+		echo "AT+CSYSSEL=\"nr5g_disable\",2" > /dev/ttyUSB3
+		sleep 1
+		echo "AT+CSYSSEL=\"nr5g_disable\"" > /dev/ttyUSB3
+		sleep 0.5
+		sync
+		cat /tmp/.sa | grep "+CSYSSEL: \"nr5g_disable\",2" > /dev/null
+		if [ $? -eq 0 ];then
+			echo "set to sa ok"
+			break
+		else
+			sleep 1
+			continue
+		fi
+	done
+	kill `pidof cat /dev/ttyUSB3`
+	rm -f /tmp/.sa
+	sync
+
+	cat /dev/ttyUSB3 > /tmp/.cnmp &
+	while true
+	do
+		echo "AT+CNMP=71" > /dev/ttyUSB3
+		sleep 1
+		echo AT+CNMP? > /dev/ttyUSB3
+		sleep 0.5
+		sync
+		cat /tmp/.cnmp | grep "+CNMP: 71" > /dev/null
+		if [ $? -eq 0 ];then
+			echo "cnmp sa ok"
+			break
+		else
+			sleep 1
+			continue
+		fi
+	done
+	kill `pidof cat /dev/ttyUSB3`
+	rm -f /tmp/.cnmp
+	sync
+}
+
+function take_effect()
+{
+	echo AT+CFUN=0 > /dev/ttyUSB3
+	sleep 2
+	echo AT+CFUN=1 > /dev/ttyUSB3
+}
+echo "Start to config 5g network to sa mode."
+is_sa | grep "sa"
+if [ $? -eq 0 ];then
+	echo "Current mode is sa.No switch."
+	kill `pidof cat /dev/ttyUSB3`
+	rm -f /tmp/.auto
+	sync
+	exit 0
+fi
+
+kill `pidof cat /dev/ttyUSB3`
+rm -f /tmp/.auto
+sync
+lock_saband
+take_effect
+
+echo "Config 5g network to sa mode finished."
+

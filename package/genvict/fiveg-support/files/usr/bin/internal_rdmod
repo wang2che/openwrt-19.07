@@ -1,0 +1,48 @@
+#!/bin/bash
+cat /dev/ttyUSB3 > /tmp/fgmod.rd &
+sleep 1
+echo "AT+CSYSSEL=\"nr5g_disable\"" > /dev/ttyUSB3
+sleep 0.5
+sync
+cat /tmp/fgmod.rd | grep "+CSYSSEL: \"nr5g_disable\",0" > /dev/null
+if [ $? -eq 0 ];then
+    figmode=nr_auto
+else
+    cat /tmp/fgmod.rd | grep "+CSYSSEL: \"nr5g_disable\",1" > /dev/null
+    if [ $? -eq 0 ];then
+        figmode=nr_nsa
+    else
+        figmode=nr_sa
+    fi
+fi
+
+echo "AT+CNMP?" > /dev/ttyUSB3
+sleep 0.5
+sync
+cat /tmp/fgmod.rd | grep "+CNMP: 55" > /dev/null
+if [ $? -eq 0 ];then
+    if [ "$figmode" == "nr_auto" ];then
+        echo "5g mode is auto." > /tmp/.fgmode
+    else
+        echo "5g mode is unknown." > /tmp/.fgmode
+    fi
+else
+    cat /tmp/fgmod.rd | grep "+CNMP: 109" > /dev/null
+    if [ $? -eq 0 ];then
+        if [ "$figmode" == "nr_nsa" ];then
+            echo "5g mode is nsa." > /tmp/.fgmode
+        else
+            echo "5g mode is unknown." > /tmp/.fgmode
+        fi
+    else
+        if [ "$figmode" == "nr_sa" ];then
+            echo "5g mode is sa." > /tmp/.fgmode
+        else
+            echo "5g mode is unknown." > /tmp/.fgmode
+        fi
+    fi
+fi
+
+kill $(pidof cat /dev/ttyUSB3)
+rm -f /tmp/fgmod.rd
+sync
